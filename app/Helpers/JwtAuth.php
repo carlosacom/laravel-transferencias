@@ -25,7 +25,10 @@ class JwtAuth {
     {
         switch ($this->role_app) {
             case 'user' :
-                $user = User::where('email', $email)->first();
+                $user = User::where(array(
+                    ['email', $email],
+                    ['enable', true]
+                ))->first();
                 break;
             default :
                 $user = false;

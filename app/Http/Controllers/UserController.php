@@ -18,6 +18,8 @@ class UserController extends Controller
         $this->middleware('userAdmin', array(
             'only' => [
                 'store',
+                'show',
+                'index',
             ]
         ));
     }
@@ -38,6 +40,10 @@ class UserController extends Controller
             );
         }
         return response()->json($response['response'],$response['status']);
+    }
+    public function index()
+    {
+        return User::where('enable', true)->get()->load('role');
     }
     public function store(Request $request) 
     {
@@ -72,6 +78,89 @@ class UserController extends Controller
             $response = array(
                 'status' => 500,
                 'response' => array('errors' => 'Error en el servidor' . $e->getMessage())
+            );
+        }
+        return response()->json($response['response'],$response['status']);
+    }
+    public function show(String $id)
+    {
+        $user = User::find($id);
+        if ($user) {
+            $response = array(
+                'status' => 200,
+                'response' => $user->load('role')
+            );
+        } else {
+            $response = array(
+                'status' => 404,
+                'response' => array('errors' => 'No existe el usuario')
+            );
+        }
+        return response()->json($response['response'],$response['status']);
+    }
+    public function update(String $id, Request $request)
+    {
+        try {
+            $dataRequest = array_map('trim', $request->all());
+            $validate = \Validator::make($dataRequest, array(
+                'name' => 'required|string|min:2|max:175',
+                'email' => 'required|email|max:175|unique:users,email,' .$id,
+                'phone' => 'nullable|string|min:5|max:25',
+                'role_id' => 'required|numeric|exists:roles,id',
+            ));
+            if (!$validate->fails()) {
+                $user = User::find($id);
+                if ($user) {
+                    $user->name = $dataRequest['name'];
+                    $user->role_id = $dataRequest['role_id'];
+                    $user->email = $dataRequest['email'];
+                    $user->phone = isset($dataRequest['phone']) ? $dataRequest['phone'] : null ;
+                    $user->update();
+                    $response = array(
+                        'status' => 200,
+                        'response' => $user->load('role')
+                    );
+                } else {
+                    $response = array(
+                        'status' => 404,
+                        'response' => array('errors' => 'No existe el usuario')
+                    );
+                }
+            } else {
+                $response = array(
+                    'status' => 400,
+                    'response' => array('errors' => $validate->errors())
+                );
+            }
+        } catch (\Expetion $e) {
+            $response = array(
+                'status' => 500,
+                'response' => array('errors' => 'Error en el servidor ' . $e->getMessage())
+            );
+        }
+        return response()->json($response['response'],$response['status']);
+    }
+    public function destroy(String $id)
+    {
+        try {
+            $user = User::find($id);
+            if ($user) {
+                $user->enable = false;
+                $user->update();
+                $response = array(
+                    'status' => 200,
+                    'response' => $user->load('role')
+                );
+            } else {
+                $response = array(
+                    'status' => 404,
+                    'response' => array('errors' => 'No existe el usuario')
+                );
+            }
+        } catch (\Exception $e) {
+            $response = array(
+                'status' => 500,
+                'response' => array('errors' => 'Error en el servidor ' . $e->getMessage())
             );
         }
         return response()->json($response['response'],$response['status']);
