@@ -19,8 +19,8 @@ class CreateResellersTable extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('document')->unique();
-            $table->string('phone')->nullable(null);
-            $table->string('whatsapp')->nullable(null);
+            $table->string('phone')->nullable();
+            $table->string('whatsapp')->nullable();
             $table->string('token')->unique();
             $table->string('minimum_value');
             $table->timestamps();
