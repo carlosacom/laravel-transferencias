@@ -28,6 +28,10 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
+    public function discounts()
+    {
+        return $this->hasMany('App\Discount');
+    }
 
     public function role()
     {

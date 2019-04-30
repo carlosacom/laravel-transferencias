@@ -17,3 +17,4 @@ Route::get('/', function () {
 
 Route::post('user/login', 'UserController@login');
 Route::resource('user', 'UserController');
+Route::resource('reseller', 'ResellerController');
