@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Reseller;
+use App\Discount;
 
 class ResellerController extends Controller
 {
@@ -40,6 +41,7 @@ class ResellerController extends Controller
     public function store(Request $request)
     {
         try {
+            $dataUser = $request->header('DataUser');
             $dataRequest = array_map('trim', $request->all());
             $validate = \Validator::make($dataRequest, array(
                 'name' => 'required|string|min:2|max:175',
@@ -60,9 +62,14 @@ class ResellerController extends Controller
                 $reseller->minimum_value = $dataRequest['minimum_value'];
                 $reseller->password = \Hash::make($dataRequest['password']);
                 $reseller->save();
+                $discount = new Discount();
+                $discount->user_id = $dataUser->sub;
+                $discount->reseller_id = $reseller->id;
+                $discount->discount = 0;
+                $discount->save();
                 $response = array(
                     'status' => 200,
-                    'response' => $reseller
+                    'response' => $reseller->load('discount_actual')
                 );
             } else {
                 $response = array(
